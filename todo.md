@@ -8,103 +8,103 @@
 - [x] Create `plan.md`.
 - [x] Create `todo.md`.
 - [ ] Verify that every PRD requirement appears in this TODO list.
-- [ ] Create first Git commit for planning documents.
+- [x] Create first Git commit for planning documents.
 
 ---
 
 ## Phase 2 - Project Structure
 
-- [ ] Create `.gitignore`.
-- [ ] Create `requirements.txt`.
-- [ ] Create `main.py`.
-- [ ] Create `src/` folder.
-- [ ] Create `tests/` folder.
-- [ ] Create `results/` folder.
-- [ ] Create `src/data.py`.
-- [ ] Create `src/models.py`.
-- [ ] Create `src/train.py`.
-- [ ] Create `src/evaluate.py`.
-- [ ] Create `tests/test_data.py`.
-- [ ] Create `tests/test_models.py`.
+- [x] Create `.gitignore`.
+- [x] Create `requirements.txt`.
+- [x] Create `main.py`.
+- [x] Create `src/` folder.
+- [x] Create `tests/` folder.
+- [x] Create `results/` folder.
+- [x] Create `src/data.py`.
+- [x] Create `src/models.py`.
+- [x] Create `src/train.py`.
+- [x] Create `src/evaluate.py`.
+- [x] Create `tests/test_data.py`.
+- [x] Create `tests/test_models.py`.
 
 ---
 
 ## Phase 3 - Dataset
 
-- [ ] Choose 4 known frequencies.
-- [ ] Explain the frequency choices in README.
-- [ ] Generate clean sine/cosine signals.
-- [ ] Add random noise using `sigma`.
-- [ ] Create 10-sample noisy windows.
-- [ ] Create matching 10-sample clean target windows.
-- [ ] Create one-hot encoded frequency vector.
-- [ ] Return dataset in PyTorch-friendly format.
-- [ ] Test dataset output shapes.
-- [ ] Test one-hot encoding validity.
-- [ ] Test that noise changes the clean signal.
+- [x] Choose 4 known frequencies.
+- [x] Explain the frequency choices in README.
+- [x] Generate clean sine/cosine signals.
+- [x] Add random noise using `sigma`.
+- [x] Create 10-sample noisy windows.
+- [x] Create matching 10-sample clean target windows.
+- [x] Create one-hot encoded frequency vector.
+- [x] Return dataset in PyTorch-friendly format.
+- [x] Test dataset output shapes.
+- [x] Test one-hot encoding validity.
+- [x] Test that noise changes the clean signal.
 
 ---
 
 ## Phase 4 - Models
 
-- [ ] Implement MLP model.
-- [ ] Implement RNN model.
-- [ ] Implement LSTM model.
-- [ ] Test MLP forward pass.
-- [ ] Test RNN forward pass.
-- [ ] Test LSTM forward pass.
-- [ ] Test that all models output 10 reconstructed samples.
+- [x] Implement MLP model.
+- [x] Implement RNN model.
+- [x] Implement LSTM model.
+- [x] Test MLP forward pass.
+- [x] Test RNN forward pass.
+- [x] Test LSTM forward pass.
+- [x] Test that all models output 10 reconstructed samples.
 
 ---
 
 ## Phase 5 - Training
 
-- [ ] Implement MSE loss.
-- [ ] Implement Adam optimizer.
-- [ ] Implement training loop.
-- [ ] Train MLP.
-- [ ] Train RNN.
-- [ ] Train LSTM.
-- [ ] Record training losses.
-- [ ] Split dataset into train and test sets.
+- [x] Implement MSE loss.
+- [x] Implement Adam optimizer.
+- [x] Implement training loop.
+- [x] Train MLP.
+- [x] Train RNN.
+- [x] Train LSTM.
+- [x] Record training losses.
+- [x] Split dataset into train and test sets.
 
 ---
 
 ## Phase 6 - Evaluation
 
-- [ ] Calculate test MSE for MLP.
-- [ ] Calculate test MSE for RNN.
-- [ ] Calculate test MSE for LSTM.
-- [ ] Compare the three models.
-- [ ] Save at least one prediction plot.
+- [x] Calculate test MSE for MLP.
+- [x] Calculate test MSE for RNN.
+- [x] Calculate test MSE for LSTM.
+- [x] Compare the three models.
+- [x] Save at least one prediction plot.
 - [ ] Save loss/results in `results/`.
-- [ ] Discuss which model performed best.
+- [x] Discuss which model performed best.
 
 ---
 
 ## Phase 7 - README Lab Report
 
-- [ ] Write project overview.
-- [ ] Explain RNN and sequence prediction.
-- [ ] Explain sine signal, frequency, amplitude, phase, and sampling.
-- [ ] Explain dataset generation.
-- [ ] Explain model architectures.
-- [ ] Explain training setup.
-- [ ] Add results table.
-- [ ] Add discussion.
-- [ ] Add instructions for running the project.
-- [ ] Add instructions for running tests.
-- [ ] Add GitHub repository link.
+- [x] Write project overview.
+- [x] Explain RNN and sequence prediction.
+- [x] Explain sine signal, frequency, amplitude, phase, and sampling.
+- [x] Explain dataset generation.
+- [x] Explain model architectures.
+- [x] Explain training setup.
+- [x] Add results table.
+- [x] Add discussion.
+- [x] Add instructions for running the project.
+- [x] Add instructions for running tests.
+- [x] Add GitHub repository link.
 
 ---
 
 ## Phase 8 - Final Checks
 
-- [ ] Run `python main.py`.
-- [ ] Run `pytest`.
-- [ ] Fix all errors.
-- [ ] Check that files are modular and not too long.
-- [ ] Check that README is detailed enough.
+- [x] Run `python main.py`.
+- [x] Run `pytest`.
+- [x] Fix all errors.
+- [x] Check that files are modular and not too long.
+- [x] Check that README is detailed enough.
 - [ ] Check that GitHub repository is public.
 - [ ] Push final version to GitHub.
 - [ ] Prepare final PDF/report with GitHub link.
