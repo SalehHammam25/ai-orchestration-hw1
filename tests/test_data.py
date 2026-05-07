@@ -7,13 +7,10 @@ import pytest
 import torch
 from src.data import SignalDataset, NUM_FREQUENCIES
 
-NOISE_MIN = 0.05
-NOISE_MAX = 0.25
-
 
 @pytest.fixture(scope="module")
 def dataset():
-    return SignalDataset(num_samples=50, noise_min=NOISE_MIN, noise_max=NOISE_MAX, seed=0)
+    return SignalDataset(num_samples=50, seed=0)
 
 
 def test_dataset_length(dataset):
@@ -22,7 +19,7 @@ def test_dataset_length(dataset):
 
 def test_input_shape(dataset):
     x, _ = dataset[0]
-    assert x.shape == (15,)
+    assert x.shape == (14,)
 
 
 def test_target_shape(dataset):
@@ -38,15 +35,16 @@ def test_one_hot_valid(dataset):
         assert (one_hot == 1.0).sum().item() == 1
 
 
-def test_sigma_in_range(dataset):
+def test_noisy_window_in_valid_range(dataset):
+    # sigma_noisy is the sum of 4 unit-amplitude signals; absolute values stay well below 5
     for i in range(len(dataset)):
         x, _ = dataset[i]
-        sigma = x[NUM_FREQUENCIES].item()
-        assert NOISE_MIN <= sigma <= NOISE_MAX
+        noisy_window = x[NUM_FREQUENCIES:]
+        assert noisy_window.abs().max().item() <= 5.0
 
 
 def test_noisy_differs_from_clean(dataset):
     for i in range(len(dataset)):
         x, y = dataset[i]
-        noisy = x[NUM_FREQUENCIES + 1:]
+        noisy = x[NUM_FREQUENCIES:]
         assert not torch.equal(noisy, y)

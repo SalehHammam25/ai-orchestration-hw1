@@ -8,7 +8,7 @@ import torch
 from src.models import MLPModel, RNNModel, LSTMModel
 
 BATCH_SIZE = 8
-INPUT_SIZE = 15
+INPUT_SIZE = 14
 OUTPUT_SIZE = 10
 
 

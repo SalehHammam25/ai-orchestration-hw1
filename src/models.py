@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 
-INPUT_SIZE = 15      # 4 one-hot + 1 sigma + 10 noisy samples
+INPUT_SIZE = 14      # 4 one-hot + 10 sigma_noisy window samples
 OUTPUT_SIZE = 10     # 10 reconstructed clean samples
-CONDITION_SIZE = 5   # one-hot (4) + sigma (1)
-SEQ_LEN = 10         # number of noisy samples in the sequence
+CONDITION_SIZE = 4   # one-hot (4)
+SEQ_LEN = 10         # number of sigma_noisy samples in the context window
 
 
 class MLPModel(nn.Module):
@@ -19,16 +19,14 @@ class MLPModel(nn.Module):
         )
 
     def forward(self, x):
-        # x: (batch, 15)
+        # x: (batch, 14)
         return self.net(x)
 
 
 class RNNModel(nn.Module):
     def __init__(self, hidden_size=32):
         super().__init__()
-        # Each timestep receives: 1 noisy sample + 5 condition values.
-        # Repeating condition at every step lets the RNN use frequency/sigma
-        # context at each denoising decision rather than only at step 0.
+        # Each timestep receives: 1 sigma_noisy sample + 4 one-hot condition values.
         self.rnn = nn.RNN(
             input_size=CONDITION_SIZE + 1,
             hidden_size=hidden_size,

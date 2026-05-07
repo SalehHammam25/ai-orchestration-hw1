@@ -64,7 +64,7 @@ y(t) = A * sin(2π * f * t + φ)
 - **Amplitude (A):** the peak value of the signal.
 - **Frequency (f):** how many full cycles occur per second (Hz). Higher frequency means a faster oscillation.
 - **Phase (φ):** a horizontal shift of the waveform. A phase of π/2 turns a sine into a cosine.
-- **Sampling rate:** how many discrete samples are taken per second. This project uses 32 samples per second, so a 10-sample window covers 0.3125 seconds. A rate of 32 Hz is sufficient because the highest frequency in the dataset is 8 Hz; the Nyquist theorem requires the sampling rate to be at least twice the highest frequency (2 × 8 = 16 Hz), so 32 Hz provides a comfortable margin with no aliasing.
+- **Sampling rate:** how many discrete samples are taken per second. This project uses 1000 Hz, so each full signal is 10 seconds × 1000 Hz = 10,000 samples. A 10-sample context window covers exactly 10 ms.
 
 ---
 
@@ -74,69 +74,91 @@ The dataset is fully synthetic and generated in code (`src/data.py`).
 
 ### 4.1 Frequencies
 
-Four frequencies were chosen:
+Four odd frequencies were chosen per the lecture specification:
 
 | Index | Frequency (Hz) |
 |-------|----------------|
 | 0     | 1.0            |
-| 1     | 2.0            |
-| 2     | 4.0            |
-| 3     | 8.0            |
+| 1     | 3.0            |
+| 2     | 5.0            |
+| 3     | 7.0            |
 
-These are powers of two, covering a range from slow to fast oscillations. Using a doubling pattern ensures the frequencies are well-separated and easy to distinguish.
+### 4.2 Signal Construction
 
-### 4.2 Sample Structure
+The dataset is built from 4 fixed full-length signals, each 10 seconds at 1000 Hz (10,000 samples per signal).
 
-Each sample in the dataset is constructed as follows:
-
-1. A frequency is chosen randomly from the four options.
-2. A random phase φ ∈ [0, 2π) is drawn. This randomizes the starting position within the cycle and means the dataset naturally includes cosine-like signals as well (since cos(x) = sin(x + π/2)).
-3. A noise level σ is drawn uniformly from [0.05, 0.25].
-4. A clean signal window of 10 samples is generated using the sine formula.
-5. Gaussian noise with standard deviation σ is added to produce the noisy signal.
-
-### 4.3 Input and Target Format
-
-Each sample is represented as a flat input tensor of size **15** and a target tensor of size **10**:
+**Clean signals** — pure sine at each frequency with amplitude A = 1.0:
 
 ```
-Input  (15): [ one_hot(4) | sigma(1) | noisy_signal(10) ]
-Target (10): [ clean_signal(10) ]
+clean_i(t) = A * sin(2π * f_i * t)
 ```
 
-- **One-hot vector (4):** encodes which frequency the signal belongs to. Exactly one value is 1.0 and the rest are 0.0.
-- **Sigma (1):** the noise level that was applied, so the model knows how much noise to expect.
-- **Noisy signal (10):** the 10 observed noisy samples.
-- **Target (10):** the 10 corresponding clean samples the model must reconstruct.
+**Noisy signals** — each clean signal is perturbed by scalar amplitude noise α and phase noise β:
 
-The dataset is generated with 2000 samples (seed=42 for reproducibility).
+```
+noisy_i(t) = (A + α_i) * sin(2π * f_i * t + β_i)
+```
+
+where α_i ~ N(0, 0.1) and β_i ~ N(0, 0.2) are drawn once per signal (constant across all 10,000 samples).
+
+**Summed signals:**
+
+```
+sigma_clean(t) = clean_0(t) + clean_1(t) + clean_2(t) + clean_3(t)
+sigma_noisy(t) = noisy_0(t) + noisy_1(t) + noisy_2(t) + noisy_3(t)
+```
+
+### 4.3 Dataset Sampling
+
+Each training sample is drawn as follows:
+
+1. Randomly select one of the 4 frequencies (index k).
+2. Encode it as a one-hot vector **C** of size 4.
+3. Randomly choose a start index (0 to 9,990) in `sigma_noisy`.
+4. Extract a 10-sample context window from `sigma_noisy` at that position.
+5. Extract the same 10-sample window from `clean_k` as the target **Sc**.
+
+### 4.4 Input and Target Format
+
+Each sample is represented as a flat input tensor of size **14** and a target tensor of size **10**:
+
+```
+Input  (14): [ C (one_hot, 4) | sigma_noisy_window (10) ]
+Target (10): [ Sc = clean_k_window (10) ]
+```
+
+- **C (4):** one-hot vector identifying which of the 4 frequencies the target belongs to.
+- **sigma_noisy_window (10):** 10 consecutive samples from the sum of all 4 noisy signals.
+- **Sc (10):** the 10 corresponding samples from the selected clean signal — the denoising target.
+
+The dataset draws 10,000 such windows (seed=42 for reproducibility).
 
 ---
 
 ## 5. Model Architectures
 
-All three models accept input of shape `(batch, 15)` and produce output of shape `(batch, 10)`.
+All three models accept input of shape `(batch, 14)` and produce output of shape `(batch, 10)`.
 
 ### 5.1 MLP
 
 A fully connected feedforward network with two hidden layers:
 
 ```
-Linear(15 → 64) → ReLU → Linear(64 → 64) → ReLU → Linear(64 → 10)
+Linear(14 → 64) → ReLU → Linear(64 → 64) → ReLU → Linear(64 → 10)
 ```
 
-The MLP treats the entire input as a flat feature vector. It has no notion of sequence order but can freely mix all 15 input features.
+The MLP treats the entire input as a flat feature vector. It has no notion of sequence order but can freely mix all 14 input features.
 
 ### 5.2 RNN
 
 The input is split into:
-- **Condition** (`x[:5]`): one-hot + sigma, repeated at every timestep.
-- **Sequence** (`x[5:]`): the 10 noisy samples, treated as a sequence of length 10.
+- **Condition** (`x[:4]`): one-hot vector C, repeated at every timestep.
+- **Sequence** (`x[4:]`): the 10 sigma_noisy samples, treated as a sequence of length 10.
 
-Each timestep receives a 6-dimensional input `[noisy_sample, one_hot(4), sigma]`. The condition is repeated at every step so the network has access to frequency and noise information at each denoising decision.
+Each timestep receives a 5-dimensional input `[sigma_noisy_sample, one_hot(4)]`. The condition is repeated at every step so the network always knows which clean signal to target.
 
 ```
-RNN(input=6, hidden=32, batch_first=True) → Linear(32 → 1) per step → output (batch, 10)
+RNN(input=5, hidden=32, batch_first=True) → Linear(32 → 1) per step → output (batch, 10)
 ```
 
 ### 5.3 LSTM
@@ -144,7 +166,7 @@ RNN(input=6, hidden=32, batch_first=True) → Linear(32 → 1) per step → outp
 Identical structure to the RNN model, but uses an LSTM cell instead of a vanilla RNN cell:
 
 ```
-LSTM(input=6, hidden=32, batch_first=True) → Linear(32 → 1) per step → output (batch, 10)
+LSTM(input=5, hidden=32, batch_first=True) → Linear(32 → 1) per step → output (batch, 10)
 ```
 
 ---
@@ -158,7 +180,7 @@ LSTM(input=6, hidden=32, batch_first=True) → Linear(32 → 1) per step → out
 | Learning rate   | 0.001                    |
 | Batch size      | 32                       |
 | Epochs          | 20                       |
-| Dataset size    | 2000 samples             |
+| Dataset size    | 10,000 windows           |
 | Train/test split| 80% train / 20% test     |
 | Random seed     | 42                       |
 
@@ -170,9 +192,9 @@ Training and evaluation are implemented in `src/train.py`. The training loop rec
 
 | Model | Test MSE  |
 |-------|-----------|
-| MLP   | 0.003767  |
-| LSTM  | 0.009794  |
-| RNN   | 0.011066  |
+| MLP   | 0.173525  |
+| LSTM  | 0.294412  |
+| RNN   | 0.309764  |
 
 Prediction plots comparing noisy input, clean target, and model prediction are saved to the `results/` folder when running `main.py`.
 
@@ -184,7 +206,7 @@ The MLP achieved the lowest test MSE in this experiment, outperforming both the 
 
 - **The task is local, not temporal.** Each input already contains all 10 noisy samples together, so there is no need to maintain memory across timesteps. The MLP can directly learn a mapping from all 15 features to the 10 clean outputs.
 - **The sequences are short.** With only 10 timesteps, the vanishing gradient problem is less of a concern, and the advantage of LSTM gating is reduced.
-- **The dataset is relatively small.** Recurrent models generally benefit more from larger datasets. With 1600 training samples and 20 epochs, the RNN and LSTM may not have fully converged.
+- **The dataset is relatively small.** Recurrent models generally benefit more from larger datasets. With 8,000 training windows and 20 epochs, the RNN and LSTM may not have fully converged.
 
 The LSTM performed better than the RNN, which is consistent with its more expressive gating mechanism helping it learn faster.
 
