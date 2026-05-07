@@ -64,7 +64,7 @@ y(t) = A * sin(2π * f * t + φ)
 - **Amplitude (A):** the peak value of the signal.
 - **Frequency (f):** how many full cycles occur per second (Hz). Higher frequency means a faster oscillation.
 - **Phase (φ):** a horizontal shift of the waveform. A phase of π/2 turns a sine into a cosine.
-- **Sampling rate:** how many discrete samples are taken per second. This project uses 32 samples per second, so a 10-sample window covers 0.3125 seconds.
+- **Sampling rate:** how many discrete samples are taken per second. This project uses 32 samples per second, so a 10-sample window covers 0.3125 seconds. A rate of 32 Hz is sufficient because the highest frequency in the dataset is 8 Hz; the Nyquist theorem requires the sampling rate to be at least twice the highest frequency (2 × 8 = 16 Hz), so 32 Hz provides a comfortable margin with no aliasing.
 
 ---
 
@@ -170,9 +170,9 @@ Training and evaluation are implemented in `src/train.py`. The training loop rec
 
 | Model | Test MSE  |
 |-------|-----------|
-| MLP   | 0.006376  |
-| LSTM  | 0.013592  |
-| RNN   | 0.016175  |
+| MLP   | 0.003767  |
+| LSTM  | 0.009794  |
+| RNN   | 0.011066  |
 
 Prediction plots comparing noisy input, clean target, and model prediction are saved to the `results/` folder when running `main.py`.
 

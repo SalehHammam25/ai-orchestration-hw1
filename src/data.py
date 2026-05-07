@@ -16,7 +16,7 @@ class SignalDataset(Dataset):
 
     def __init__(
         self,
-        num_samples=1000,
+        num_samples=10000,
         window_size=10,
         sampling_rate=32,
         amplitude=1.0,

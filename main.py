@@ -8,7 +8,7 @@ from src.train import train_model, evaluate_model
 from src.evaluate import compare_results, save_prediction_plot
 
 # ── Config ────────────────────────────────────────────────────────────────────
-NUM_SAMPLES   = 2000
+NUM_SAMPLES   = 10000
 TRAIN_RATIO   = 0.8
 BATCH_SIZE    = 32
 EPOCHS        = 20
